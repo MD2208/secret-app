@@ -1,0 +1,45 @@
+
+body {
+  background-color: #E8ECEF;
+}
+
+.homecard{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.homecard p{
+  margin:0;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #000;
+}
+.centered {
+    padding-top: 200px;
+    text-align: center;
+}
+
+.secret-text {
+  text-align: center;
+  font-size: 2rem;
+  color: #fff;
+  background-color: #000;
+}
+
+.btns{
+  padding-top: 16px;
+}
+.btn{
+  min-width:6.625rem !important; /* 106px */
+}
+
+.error{
+  width: 100%;
+  background-color: #E35750;
+  color: #fff;
+  font-size: 0.8rem;
+  text-align: center;
+  border-bottom-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
