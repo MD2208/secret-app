@@ -5,7 +5,10 @@ const bodyParser=require('body-parser');
 const ejs=require('ejs');
 const mongoose=require('mongoose');
 // const encrypt=require('mongoose-encryption');  // It was level 3 security
-const md5=require('md5'); // to able to hash password
+// const md5=require('md5'); // to able to hash password with md5 hash method
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 app=express();
 
 app.use(express.static("public"));
@@ -45,37 +48,45 @@ app.get("/register",(req,res)=>{
 });
 
 app.post("/register", (req,res)=>{
-  const userMail=req.body.usermail;
-  const upassword= md5(req.body.password);
-  const newUser = new User({
-    email:userMail,
-    password:upassword
-  });
-  User.findOne({email:userMail},function(err,foundUser){
-    if(!err){
-      if(foundUser===null){
-        newUser.save(function(err){
-          if(!err){
-            res.redirect("/login");
+
+
+    bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+      const userMail=req.body.usermail;
+      const upassword= hash
+      const newUser = new User({
+        email:userMail,
+        password:upassword
+      });
+      User.findOne({email:userMail},function(err,foundUser){
+        if(!err){
+          if(foundUser===null){
+            newUser.save(function(err){
+              if(!err){
+                res.redirect("/login");
+              }
+            });
+          }else{
+            res.render("register",{error:"The User already exists try to login."});
           }
-        });
-      }else{
-        res.render("register",{error:"The User already exists try to login."});
-      }
-    }
-  });
+        }
+      });
+    });
+
+
 });
 
 app.post("/login", (req,res)=>{
   const userMail=req.body.usermail;
-  const enteredPassword=md5(req.body.password);
+  const enteredPassword=req.body.password;
   User.findOne({email:userMail},function(err,foundUser){
     if(!err){
-      if(foundUser.password===enteredPassword){
-        res.render("secrets");
-      }else{
-        res.render("login",{error:"Incorrect Password!"})
-      }
+      bcrypt.compare(enteredPassword, foundUser.password, function(err, result) { // in order to check hash is matching 
+          if(result===true){
+            res.render("secrets");
+          }else{
+            res.render("login",{error:"Incorrect Password!"});
+          }
+      });
     }
   });
 });
