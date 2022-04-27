@@ -4,7 +4,8 @@ const express=require('express');
 const bodyParser=require('body-parser');
 const ejs=require('ejs');
 const mongoose=require('mongoose');
-const encrypt=require('mongoose-encryption');
+// const encrypt=require('mongoose-encryption');  // It was level 3 security
+const md5=require('md5'); // to able to hash password
 app=express();
 
 app.use(express.static("public"));
@@ -20,9 +21,11 @@ const userSchema= new mongoose.Schema({
   password:String
 });
 
-console.log(process.env.API_KEY);
-const secret=process.env.SECRET;
-userSchema.plugin(encrypt,{secret:secret , encryptedFields:["password"]});
+
+//ENCRYPTION PART
+// console.log(process.env.API_KEY);
+// const secret=process.env.SECRET;
+// userSchema.plugin(encrypt,{secret:secret , encryptedFields:["password"]}); //used to encrypt pass
 
 const User=mongoose.model("User",userSchema);
 
@@ -34,16 +37,16 @@ app.get("/",function(req,res){
 });
 
 app.get("/login",(req,res)=>{
-  res.render("login")
+  res.render("login",{error:''});
 });
 
 app.get("/register",(req,res)=>{
-  res.render("register",{existingError:""});
+  res.render("register",{error:""});
 });
 
 app.post("/register", (req,res)=>{
   const userMail=req.body.usermail;
-  const upassword=req.body.password;
+  const upassword= md5(req.body.password);
   const newUser = new User({
     email:userMail,
     password:upassword
@@ -57,7 +60,7 @@ app.post("/register", (req,res)=>{
           }
         });
       }else{
-        res.render("register",{existingError:"The User already exists try to login."});
+        res.render("register",{error:"The User already exists try to login."});
       }
     }
   });
@@ -65,11 +68,13 @@ app.post("/register", (req,res)=>{
 
 app.post("/login", (req,res)=>{
   const userMail=req.body.usermail;
-  const enteredPassword=req.body.password;
+  const enteredPassword=md5(req.body.password);
   User.findOne({email:userMail},function(err,foundUser){
     if(!err){
       if(foundUser.password===enteredPassword){
         res.render("secrets");
+      }else{
+        res.render("login",{error:"Incorrect Password!"})
       }
     }
   });
